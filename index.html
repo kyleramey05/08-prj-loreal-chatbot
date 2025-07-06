@@ -12,24 +12,37 @@
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style-loreal.css" />
   </head>
 
   <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="page-wrapper">
       <!------- Header / Branding ------->
       <header class="site-header">
+        <!-- L'Oréal logo added for branding -->
+        <img src="img/loreal-logo.png" alt="L'Oréal Logo" class="site-logo" />
         <h1 class="site-title">Smart Product Advisor</h1>
       </header>
 
       <!------- Chat Area ------->
-      <main>
+      <main id="main-content" tabindex="-1">
         <section class="chatbox">
-          <div id="chatWindow" class="chat-window">
+          <div
+            id="chatWindow"
+            class="chat-window"
+            aria-live="polite"
+            aria-label="Chat messages"
+          >
             <!-- messages will be appended here via JS -->
           </div>
 
-          <form id="chatForm" class="chat-form">
+          <form
+            id="chatForm"
+            class="chat-form"
+            autocomplete="off"
+            aria-label="Chat input"
+          >
             <label for="userInput" class="visually-hidden">Message</label>
             <input
               id="userInput"
@@ -38,9 +51,15 @@
               placeholder="Ask me about products or routines…"
               autocomplete="off"
               required
+              aria-required="true"
+              aria-label="Type your message"
             />
-            <button type="submit" id="sendBtn">
-              <span class="material-icons">send</span>
+            <button
+              type="submit"
+              id="sendBtn"
+              aria-label="Send message"
+            >
+              <span class="material-icons" aria-hidden="true">send</span>
               <span class="visually-hidden">Send</span>
             </button>
           </form>
