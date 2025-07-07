@@ -14,13 +14,36 @@ function isLorealOrBeautyQuestion(text) {
   return allowedTopics.some(topic => lower.includes(topic));
 }
 
-// Helper: add message to chat
+// Conversation history for context
+let conversationHistory = [
+  { role: "system", content: "You are a helpful assistant that only answers questions about L'Oréal products, routines, recommendations, and beauty-related topics. If the question is not about these, politely refuse to answer." }
+];
+let userName = null;
+
+// Helper: add message bubble to chat
 function addMessage(text, sender = "ai") {
   const msgDiv = document.createElement("div");
-  msgDiv.className = `msg ${sender}`;
+  msgDiv.className = `msg-bubble ${sender}`;
+  msgDiv.setAttribute("role", "region");
+  msgDiv.setAttribute("aria-live", sender === "ai" ? "polite" : "off");
   msgDiv.textContent = text;
   chatWindow.appendChild(msgDiv);
   chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+// Helper: show latest user question above response
+function showLatestUserQuestion(question) {
+  let latestQ = document.getElementById("latest-question");
+  if (!latestQ) {
+    latestQ = document.createElement("div");
+    latestQ.id = "latest-question";
+    latestQ.className = "latest-question";
+    chatWindow.appendChild(latestQ);
+  }
+  latestQ.textContent = `You asked: ${question}`;
+  latestQ.style.fontWeight = "bold";
+  latestQ.style.margin = "16px 0 4px 0";
+  latestQ.style.color = "#000";
 }
 
 // Set initial message
@@ -32,8 +55,23 @@ chatForm.addEventListener("submit", async (e) => {
   const question = userInput.value.trim();
   if (!question) return;
 
-  // Show user message
+  // Ask for name if not set
+  if (!userName) {
+    if (/my name is (.+)/i.test(question)) {
+      userName = question.match(/my name is (.+)/i)[1].split(" ")[0];
+      addMessage(`Nice to meet you, ${userName}!`, "ai");
+      userInput.value = "";
+      return;
+    } else {
+      addMessage("Before we start, what's your name? (Type: My name is ...)", "ai");
+      userInput.value = "";
+      return;
+    }
+  }
+
+  // Show user message as bubble
   addMessage(question, "user");
+  showLatestUserQuestion(question);
   userInput.value = "";
 
   // Only answer L'Oréal or beauty-related questions
@@ -42,40 +80,31 @@ chatForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  // Show loading message
+  // Add to conversation history
+  conversationHistory.push({ role: "user", content: question });
   addMessage("Thinking...", "ai");
 
-  // Prepare OpenAI API call
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://green-pond-0ef8.kyramey.workers.dev", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_API_KEY}`
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: "You are a helpful assistant that only answers questions about L'Oréal products, routines, recommendations, and beauty-related topics. If the question is not about these, politely refuse to answer." },
-          { role: "user", content: question }
-        ],
-        max_tokens: 300,
-        temperature: 0.7
-      })
+      body: JSON.stringify({ messages: conversationHistory })
     });
     const data = await response.json();
     // Remove loading message
-    const loadingMsg = chatWindow.querySelector(".msg.ai:last-child");
+    const loadingMsg = chatWindow.querySelector(".msg-bubble.ai:last-child");
     if (loadingMsg && loadingMsg.textContent === "Thinking...") chatWindow.removeChild(loadingMsg);
     if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
       addMessage(data.choices[0].message.content, "ai");
+      conversationHistory.push({ role: "assistant", content: data.choices[0].message.content });
     } else {
       addMessage("Sorry, I couldn't get a response. Please try again.", "ai");
     }
   } catch (err) {
-    // Remove loading message
-    const loadingMsg = chatWindow.querySelector(".msg.ai:last-child");
+    const loadingMsg = chatWindow.querySelector(".msg-bubble.ai:last-child");
     if (loadingMsg && loadingMsg.textContent === "Thinking...") chatWindow.removeChild(loadingMsg);
-    addMessage("There was an error connecting to the chatbot. Please check your API key and internet connection.", "ai");
+    addMessage("There was an error connecting to the chatbot. Please check your Cloudflare Worker and internet connection.", "ai");
   }
 });

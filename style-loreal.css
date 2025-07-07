@@ -88,6 +88,8 @@ a:focus, button:focus, input:focus, textarea:focus {
   overflow-y: auto;
   background: #FAFAFA;
   white-space: pre-line;
+  display: flex;
+  flex-direction: column;
 }
 
 .msg {
@@ -101,6 +103,44 @@ a:focus, button:focus, input:focus, textarea:focus {
 
 .msg.ai {
   color: #C7B299;
+}
+
+/* Chat bubbles and latest question styles */
+.msg-bubble {
+  max-width: 80%;
+  padding: 12px 18px;
+  margin: 8px 0;
+  border-radius: 18px;
+  font-size: 17px;
+  line-height: 1.5;
+  word-break: break-word;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  display: inline-block;
+}
+.msg-bubble.user {
+  background: #C7B299;
+  color: #fff;
+  align-self: flex-end;
+  margin-left: 20%;
+  text-align: right;
+}
+.msg-bubble.ai {
+  background: #fff;
+  color: #000;
+  align-self: flex-start;
+  margin-right: 20%;
+  text-align: left;
+}
+.latest-question {
+  background: #f5f5f5;
+  color: #000;
+  border-left: 4px solid #C7B299;
+  padding: 8px 14px;
+  margin: 10px 0 2px 0;
+  border-radius: 8px;
+  font-size: 15px;
+  font-style: italic;
+  max-width: 90%;
 }
 
 .chat-form {
